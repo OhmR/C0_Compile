@@ -22,7 +22,9 @@ void Error::ErrorMessage(int errortype, int line) {
 	case 9:
 		cout << "illegal factor" << endl;
 		break;
-
+	case 10:
+		cout << "In condition, two ident type are unmap" << endl;
+		break;
 	default:
 		break;
 	}
@@ -37,7 +39,7 @@ void Error::ErrorMessage(int errortype, int line, string message1) {
 		cout << "Illegal word '" << message1 << "' ";
 		break;
 	case 1:
-		cout << "String menber '" + message1 + "' is illegal, ";
+		cout << "Member '" + message1 + "' is illegal, ";
 		break;
 	case 2:
 		cout << "Illegal char " + message1 + " after '!'" << endl;;		//不等号不完整
