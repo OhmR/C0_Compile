@@ -1,0 +1,130 @@
+coNst int MAXNUM=10,MINNUM=-100;
+CONST char WORD='a';
+
+
+int flag,num1,num2,array[10],n;
+char string[3];
+
+
+int sum(int x,int y)
+{
+    return (x+y);
+}
+
+
+int init
+{
+    const int LEN=10;
+    int index;
+    flag=0;num1=0;num2=0;n=0;index=0;
+    while(index<LEN){
+        array[index]=0;
+    }
+    for(index=2;index>=0;index=index-1)string[index]='0';
+    return (0);
+}
+
+
+void print(int result)
+{
+    if(flag==1){
+        printf("compute the factorial of ",n);
+        printf("the result is:");
+        printf(result);
+        return;
+    }
+    if(flag==2){
+        printf("the sum is:",result);
+        return;
+    }
+    return;
+}
+
+
+int factorial(int n)
+{
+    if(n==1)return (n);
+    else return(n*factorial(n-1));
+}
+
+
+void printc
+{
+    int i;
+    print(WORD);
+    printf('+');
+    printf('-');
+    printf('*');
+    printf('/');
+    for(i=0;i!=3;i=i+1)printf(string[i]);
+}
+
+
+char fun(int a, int b)
+{
+    char n;
+    int re;
+    re=((a+b)*array[0]*10*'A'/sum(a,1));
+    re=-re+'a';
+    re=+re-'a';
+    n='a';
+    return (n);
+}
+
+void main()
+{
+    int result;
+    init;
+    scanf(flag);
+    if(flag==1){
+        scanf(n);
+        if(n>MAXNUM){
+            printf("too big!");
+            return;
+        }
+        if(n<=0){
+            printf("must be a positive number!");
+            return;
+        }
+        result=factorial(n);
+    }
+    if(flag==2){
+        scanf(num1,num2);
+        if(num1>MAXNUM){
+            printf("too big!");
+            return;
+        }
+        if(num1<MINNUM){
+            printf("too small!");
+            return;
+        }
+        if(num2>MAXNUM){
+            printf("too big!");
+            return;
+        }
+        if(num2<MINNUM){
+            printf("too small!");
+            return;
+        }
+        result=sum(num1,num2);
+    }
+    if(flag==3){
+        printc;
+        return;
+    }
+    if(flag>3){
+        printf("invalid flag!");
+        return;
+        
+    }
+    if(flag<0){
+        printf("invalid flag!");
+        return;
+    }
+    print(result);
+    printf(fun(0,0));
+    ;
+    if(flag)printf("flag is not equal to 0.");
+    else printf("flag is equal to 0.");
+    return;
+}

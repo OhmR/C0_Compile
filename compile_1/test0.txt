@@ -1,0 +1,176 @@
+const int pi = 3;
+int tp;
+char stack[50];
+
+void stackinit{
+	int i;
+	tp = -1;
+	for(i = 0; i < 50; i = i+ 1){
+		stack[i] = 0;
+	}
+}
+
+void push(char num){
+	if(tp == 50)
+	{
+		printf("push error!");
+		return;
+	}
+	tp = tp + 1;
+	stack[tp] = num;
+}
+
+char pop{
+	char temp;
+	if(tp < 0){
+		printf("pop error!");
+		return (-1);
+	}
+	temp = stack[tp];
+	stack[tp] = 0;
+	tp = tp - 1;
+	return (temp);	
+}
+
+Int fibo(int index){
+	if(index < 0){
+		printf("fibo error!");
+		return (-1);
+	}
+	else if(index == 0){
+		return (1);
+	}
+	else if(index == 1){
+		return (1);
+	}
+	else
+		return (fibo(index - 1) + fibo(index - 2));
+}
+
+void clearstack{
+	int i;
+	while(tp != -1){
+		printf(pop);
+	}
+}
+
+void Main(){
+	int num, i, j;
+	char array[50], Temp; 
+
+	scanf(num);
+	for(i = 0; i < num; i = i + 1){
+		scanf(Temp);
+		array[i] = Temp;
+	}
+
+	stackinit;
+	
+	if(1){};	
+
+	i = 0;
+	while(i != num){
+		if(tp == -1){
+			if(array[i] == '+'){
+				push(array[i]);
+			}
+			else if(array[i] == '-'){
+				push(array[i]);
+			}
+			else if(array[i] == '*'){
+				push(array[i]);
+			}
+			else if(array[i] == '/'){
+				push(array[i]);
+			}
+			else
+				printf(array[i]);
+		}
+		else if(stack[tp] == '+'){
+			if(array[i] == '*'){
+				push(array[i]);
+			}
+			else if(array[i] == '/'){
+				push(array[i]);
+			}
+			else if(array[i] == '+'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '-'){
+				printf(pop);
+				push(array[i]);
+			}
+			else
+				printf(array[i]);
+		}
+		else if(stack[tp] == '-'){
+			if(array[i] == '*'){
+				push(array[i]);
+			}
+			else if(array[i] == '/'){
+				push(array[i]);
+			}
+			else if(array[i] == '+'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '-'){
+				printf(pop);
+				push(array[i]);
+			}
+			else
+				printf(array[i]);
+		}
+		else if(stack[tp] == '*'){
+			if(array[i] == '*'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '/'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '+'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '-'){
+				printf(pop);
+				push(array[i]);
+			}
+			else
+				printf(array[i]);
+		}
+		else if(stack[tp] == '/'){
+			if(array[i] == '*'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '/'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '+'){
+				printf(pop);
+				push(array[i]);
+			}
+			else if(array[i] == '-'){
+				printf(pop);
+				push(array[i]);
+			}
+			else
+				printf(array[i]);
+		}
+		else
+			printf(pop);
+
+		i = i + 1;
+	}
+	
+	clearstack;
+
+	Temp = 'c';
+	scanf(i);
+	printf(fibo(i));
+}
