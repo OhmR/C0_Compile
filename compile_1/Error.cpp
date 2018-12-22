@@ -53,6 +53,12 @@ void Error::ErrorMessage(int errortype, int line, string message1) {
 	case 6:
 		cout << "hope " + message1 +" here but I get another word" << endl;
 		break;
+	case 11:
+		cout<< "Array " + message1 + " out of bound" <<endl;
+		break;
+	case 12:
+		cout << "Illegal assign to const " + message1 << endl;
+		break;
 	default:
 		break;
 	}

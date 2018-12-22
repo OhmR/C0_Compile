@@ -1,14 +1,17 @@
+const int cn = 20;
+
 int rec{
 	return ('c' + 5);
 }
 void main(){
 	int a,b,c;
+	int arr[11];
 	char d;
 	d = 'b';
 	a = 1;
 	if(a == rec){
 		b = 2;
 	}
-	c = 8
-	;;
+	arr[cn] = 5;
+	a = arr[cn];
 }

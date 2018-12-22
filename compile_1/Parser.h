@@ -78,6 +78,7 @@ private:
 	void Return();				//返回语句
 
 	int isNum(string name);		//判断name是否为数字
+	int transNum(string name);	//将string转化为int
 };
 
 #endif

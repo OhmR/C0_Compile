@@ -74,6 +74,22 @@ int Parser::isNum(string name) {
 		return 0;
 }
 
+int Parser::transNum(string name) {
+	int flag = 1;
+	int num = 0;
+	if (name[0] == '-')
+		flag = -1;
+	if (name[0] == '-' || name[0] == '+') {
+		for (int i = 1; i < name.size(); i++)
+			num += name[i] - '0' + num * 10;
+	}
+	else {
+		for (int i = 0; i < name.size(); i++)
+			num += name[i] - '0' + num * 10;
+	}
+	return num * flag;
+}
+
 int Parser::addOperator(){			//加法运算符
 	if (lex->return_sy() == lexical::pluscon || lex->return_sy() == lexical::minuscon){
 		if (lex->return_sy() == lexical::pluscon)
@@ -683,17 +699,35 @@ void Parser::factor() {				//因子:=＜标识符＞｜＜标识符＞‘[’＜表达式＞‘]’|‘
 		if (lex->return_sy() == lexical::lbrack) {			//数组
 			lex->getsy();
 			expr();
+
 			T = Code.GenTempName(temp_count++);
 			info tmp;
+			int arraysize;
 			if (set.curFTab.in_arr(temp_name)) {
 				tmp.typ = set.curFTab.ret_ifo().typ;		//临时变量类型和数组保持一致
+				arraysize = set.curFTab.ret_ifo().size / 4;
 			}
 			else if (set.in_ATab(temp_name)) {
 				tmp.typ = set.reInfo().typ;
+				arraysize = set.reInfo().size / 4;
 			}
 			else {
 				err.ErrorMessage(1, lex->return_linenum(), temp_name);
 			}
+
+			if (isNum(operande)) {		//数组越界错误
+				if (transNum(operande) > arraysize)
+					err.ErrorMessage(11, lex->return_linenum(), temp_name);
+			}
+			else if (set.in_Tab(operande) && set.reInfo().obj == info::constsy) {
+				if (set.reInfo().value > arraysize)
+					err.ErrorMessage(11, lex->return_linenum(), temp_name);
+			}
+			else if (set.curFTab.in_ft(operande) && set.curFTab.ret_ifo().obj == info::constsy) {
+				if (set.curFTab.ret_ifo().value > arraysize)
+					err.ErrorMessage(11, lex->return_linenum(), temp_name);
+			}
+
 			set.curFTab.insert_ft(T, tmp);		//临时变量的类型均为notype
 			Code.genAssignArr(Quaternary::arrassign, T, temp_name, operande);		//向T中赋数组元素值
 			operande = T;
@@ -870,12 +904,34 @@ void Parser::assignStatement() {		//赋值语句 ＜标识符＞＝＜表达式＞|＜标识符＞‘
 	string tmp = lex->return_name();
 	string T;
 	if (lex->return_sy() == lexical::lbrack) {		//数组
+		int arraysize = 0;
 		if (!set.curFTab.in_arr(tmp) && !set.in_ATab(tmp)) {
 			err.ErrorMessage(1, lex->return_linenum(), tmp);
 		}
+		if (set.curFTab.in_arr(tmp)) {
+			arraysize = set.curFTab.ret_ifo().size /4;
+		}
+		else if (set.in_ATab(tmp)) {
+			arraysize = set.reInfo().size /4;
+		}
+
 		lex->getsy();
 		expr();
 //		reset_temp();
+
+		if (isNum(operande)) {		//数组越界错误
+			if (transNum(operande) > arraysize)
+				err.ErrorMessage(11, lex->return_linenum(), tmp);
+		}
+		else if (set.in_Tab(operande) && set.reInfo().obj == info::constsy) {
+			if (set.reInfo().value > arraysize)
+				err.ErrorMessage(11, lex->return_linenum(), tmp);
+		}
+		else if (set.curFTab.in_ft(operande) && set.curFTab.ret_ifo().obj == info::constsy) {
+			if (set.curFTab.ret_ifo().value > arraysize)
+				err.ErrorMessage(11, lex->return_linenum(), tmp);
+		}
+
 		T = operande;
 ;		if (lex->return_sy() == lexical::rbrack) {
 			lex->getsy();
@@ -899,6 +955,11 @@ void Parser::assignStatement() {		//赋值语句 ＜标识符＞＝＜表达式＞|＜标识符＞‘
 		if (!set.curFTab.in_ft(tmp) && !set.curFTab.in_para(tmp) && !set.in_Tab(tmp)) {
 			err.ErrorMessage(1, lex->return_linenum(), tmp);
 		}
+		if (set.curFTab.in_ft(tmp) && set.curFTab.ret_ifo().obj == info::constsy)		//给常量赋值错误
+			err.ErrorMessage(12, lex->return_linenum(), tmp);
+		else if (set.in_Tab(tmp) && set.reInfo().obj == info::constsy)
+			err.ErrorMessage(12, lex->return_linenum(), tmp);
+
 		lex->getsy();
 		expr();
 //		reset_temp();
@@ -1046,6 +1107,12 @@ void Parser::cycleStatement() {		//循环语句 while ‘(’＜条件＞‘)’＜语句＞ |fo
 				lex->getsy();
 				expr();
 //				reset_temp();
+
+				if (set.curFTab.in_ft(name_temp) && set.curFTab.ret_ifo().obj == info::constsy)		//给常量赋值错误
+					err.ErrorMessage(12, lex->return_linenum(), name_temp);
+				else if (set.in_Tab(name_temp) && set.reInfo().obj == info::constsy)
+					err.ErrorMessage(12, lex->return_linenum(), name_temp);
+
 				Code.genAssign(Quaternary::assign, name_temp, operande);
 				if (lex->return_sy() == lexical::semicolon) {
 					label_temp1 = Code.GenLabelName(label++);

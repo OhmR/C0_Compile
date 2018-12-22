@@ -1,5 +1,4 @@
-﻿  MiddleCode.cpp
-  MipsCode.cpp
+﻿  MipsCode.cpp
   OptimizationCode.cpp
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(99): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(131): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
@@ -12,5 +11,6 @@ e:\vs2017text\compile_2\compile_1\optimizationcode.h(99): warning C4267: “retu
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(131): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(139): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(165): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+  lexical.cpp
   正在生成代码...
   compile_1.vcxproj -> E:\vs2017text\compile_2\x64\Debug\compile_1.exe
