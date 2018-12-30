@@ -1,17 +1,15 @@
-const int cn = 20;
+int x;
 
-int rec{
-	return ('c' + 5);
+int func(int a, int b, int c){
+	int null;
+	null = 0;
+	return (a+b+c);
 }
+
+int foo(int a,int b){
+	return (a*b);
+}
+
 void main(){
-	int a,b,c;
-	int arr[11];
-	char d;
-	d = 'b';
-	a = 1;
-	if(a == rec){
-		b = 2;
-	}
-	arr[cn] = 5;
-	a = arr[cn];
+	printf(foo(11, func(1, 2, 3)));
 }

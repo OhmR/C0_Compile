@@ -11,6 +11,7 @@ MipsCode::MipsCode(string filename, vector<Quaternary> midcode){
 	middlecode = midcode;
 	set = par.return_symbolset();
 	set.curFTab.func_name("");	//当前函数名称清空
+	reg_flag = 0;
 	insertCode(".text", "", "", "");	//开启代码段
 	insertString(".data");				//开辟空间存字符串
 	this->genMipsCode();		//生成目标代码
@@ -21,6 +22,133 @@ MipsCode::~MipsCode()
 {
 }
 
+void MipsCode::ResetRegT() {
+	for (int i = 0; i < 10; i++) {
+		string reg = "$t" + to_string(i);
+		if (reg_T[i] != "" && !isNum(reg_T[i])) {
+			StoreToRam(reg, reg_T[i]);
+		}
+	}
+	for (int i = 0; i < 10; i++) {
+		reg_T[i] = "";
+	}
+	reg_flag = 0;
+}
+
+void MipsCode::EndResetRegT() {
+	for (int i = 0; i < 10; i++) {
+		reg_T[i] = "";
+	}
+	reg_flag = 0;
+}
+
+string MipsCode::AllocateNextReg(string name) {
+	string reg = "$t" + to_string(reg_flag);
+	if (reg_T[reg_flag] != "") {		//将reg_flag下当前结果写入内存后再进行覆盖
+		if (!isNum(name)) {
+			StoreToRam(reg, reg_T[reg_flag]);
+		}
+	}
+	reg_T[reg_flag] = name;
+	reg_flag = (reg_flag + 1) % 10;
+	return reg;
+}
+
+string MipsCode::InReg_T(string name) {
+	for (int i = 0; i < 10; i++) {		//若已经在寄存器池中，返回对应寄存器
+		if (reg_T[i] == name) {
+			return "$t"+to_string(i);
+		}
+	}
+	return "";
+}
+
+string MipsCode::AllocateReg(string name) {
+	string reg = InReg_T(name);
+	if (isNum(name)) {
+		if (reg != "")
+			return reg;
+	}
+	if (set.curFTab.ReName() != "" && (set.curFTab.in_ft(name) || set.curFTab.in_para(name))) {
+		if (reg != "")
+			return reg;
+	}
+	else if (set.in_Tab(name)) {
+		if (set.reInfo().reg != "") {
+			return set.reInfo().reg;
+		}
+		else {
+			if (reg != "")
+				return reg;
+		}
+	}
+	return AllocateNextReg(name);
+}
+
+string MipsCode::searchReg(string name) {
+	if (set.curFTab.in_ft(name) || set.curFTab.in_para(name)) {
+		for (int i = 0; i < 10; i++) {
+			if (name == reg_T[i])
+				return "$t" + to_string(i);
+		}
+	}
+	else if (set.in_Tab(name)) {
+		if (set.reInfo().reg != "") {
+			return set.reInfo().reg;
+		}
+		else {
+			for (int i = 0; i < 10; i++) {
+				if (name == reg_T[i])
+					return "$t" + to_string(i);
+			}
+		}
+	}
+	return "";
+}
+
+int MipsCode::is_S(string reg) {
+	return (reg[0] == '$' && reg[1] == 's');
+}
+
+int MipsCode::ReRegIndex(string reg) {
+	return (reg.back() - '0');
+}
+
+void MipsCode::BeforeAssignS(string name) {
+	if (set.curFTab.in_ft(name) || set.curFTab.in_para(name))
+		return;
+	else if (set.in_Tab(name)) {
+		string reg = set.reInfo().reg;
+		if (reg != "") {
+			if (reg_S[ReRegIndex(reg)] != name) {
+				if (set.in_Tab(reg_S[ReRegIndex(reg)])) {
+					insertCode("sw ", reg + ", ", to_string(set.reInfo().adr), "($gp)");
+				}
+				reg_S[ReRegIndex(reg)] = name;
+				set.in_Tab(name);
+			}
+		}
+	}
+}
+/*
+void MipsCode::BeforeUseS(string name) {
+	if (set.curFTab.in_ft(name) || set.curFTab.in_para(name))
+		return;
+	else if (set.in_Tab(name)) {
+		string reg = set.reInfo().reg;
+		if (reg != "") {
+			if (reg_S[ReRegIndex(reg)] != name) {
+				if (set.in_Tab(reg_S[ReRegIndex(reg)])) {
+					insertCode("sw ", reg + ", ", to_string(set.reInfo().adr), "($gp)");
+				}
+				reg_S[ReRegIndex(reg)] = name;
+				set.in_Tab(name);
+				insertCode("lw ", reg + ", ", to_string(set.reInfo().adr), "($gp)");
+			}
+		}
+	}
+}
+*/
 int MipsCode::isNum(string str) {
 	if (str[0] <= '9' && str[0] >= '0')
 		return 1;
@@ -30,7 +158,7 @@ int MipsCode::isNum(string str) {
 }
 
 void MipsCode::LoadReg() {
-	insertCode("lw ", "$a0, ", "0", "($sp)");
+/*	insertCode("lw ", "$a0, ", "0", "($sp)");
 	insertCode("lw ", "$a1, ", "4", "($sp)");
 	insertCode("lw ", "$a2, ", "8", "($sp)");
 	insertCode("lw ", "$a3, ", "12", "($sp)");
@@ -42,23 +170,23 @@ void MipsCode::LoadReg() {
 	insertCode("lw ", "$t5, ", "36", "($sp)");
 	insertCode("lw ", "$t6, ", "40", "($sp)");
 	insertCode("lw ", "$t7, ", "44", "($sp)");
-/*	insertCode("lw ", "$s0, ", "56", "($sp)");
+	insertCode("lw ", "$s0, ", "56", "($sp)");
 	insertCode("lw ", "$s1, ", "60", "($sp)");
 	insertCode("lw ", "$s2, ", "64", "($sp)");
 	insertCode("lw ", "$s3, ", "68", "($sp)");
 	insertCode("lw ", "$s4, ", "72", "($sp)");
 	insertCode("lw ", "$s5, ", "76", "($sp)");
 	insertCode("lw ", "$s6, ", "80", "($sp)");
-	insertCode("lw ", "$s7, ", "84", "($sp)");*/
+	insertCode("lw ", "$s7, ", "84", "($sp)");
 	insertCode("lw ", "$t8, ", "48", "($sp)");
-	insertCode("lw ", "$t9, ", "52", "($sp)");
-	insertCode("lw ", "$ra, ", "56", "($sp)");
-	insertCode("addi ", "$sp, ", "$sp, ", "60");
+	insertCode("lw ", "$t9, ", "52", "($sp)");*/
+	insertCode("lw ", "$ra, ", "0", "($sp)");
+	insertCode("addi ", "$sp, ", "$sp, ", "4");
 }
 
 void MipsCode::StoreReg() {
-	insertCode("addi ", "$sp, ", "$sp, ", "-60");
-	insertCode("sw ", "$a0, ", "0", "($sp)");
+	insertCode("addi ", "$sp, ", "$sp, ", "-4");
+/*	insertCode("sw ", "$a0, ", "0", "($sp)");
 	insertCode("sw ", "$a1, ", "4", "($sp)");
 	insertCode("sw ", "$a2, ", "8", "($sp)");
 	insertCode("sw ", "$a3, ", "12", "($sp)");
@@ -70,31 +198,62 @@ void MipsCode::StoreReg() {
 	insertCode("sw ", "$t5, ", "36", "($sp)");
 	insertCode("sw ", "$t6, ", "40", "($sp)");
 	insertCode("sw ", "$t7, ", "44", "($sp)");
-/*	insertCode("sw ", "$s0, ", "56", "($sp)");
+	insertCode("sw ", "$s0, ", "56", "($sp)");
 	insertCode("sw ", "$s1, ", "60", "($sp)");
 	insertCode("sw ", "$s2, ", "64", "($sp)");
 	insertCode("sw ", "$s3, ", "68", "($sp)");
 	insertCode("sw ", "$s4, ", "72", "($sp)");
 	insertCode("sw ", "$s5, ", "76", "($sp)");
 	insertCode("sw ", "$s6, ", "80", "($sp)");
-	insertCode("sw ", "$s7, ", "84", "($sp)");*/
+	insertCode("sw ", "$s7, ", "84", "($sp)");
 	insertCode("sw ", "$t8, ", "48", "($sp)");
-	insertCode("sw ", "$t9, ", "52", "($sp)");
+	insertCode("sw ", "$t9, ", "52", "($sp)");*/
 	insertCode("sw ", "$ra, ", "56", "($sp)");
 }
 
-void MipsCode::LoadInReg(string desReg, string src1) {				//将数据src1存入寄存器desReg中，src1可以是数字、常变量
+void MipsCode::LoadInReg(string src1) {								//将数据src1存入寄存器中，src1可以是数字、常变量
+	string desReg;
 	if (isNum(src1)) {
-		insertCode("li ", desReg+", ", src1, "");
+		desReg = InReg_T(src1);
+		if (desReg == "") {
+			desReg = AllocateNextReg(src1);
+			insertCode("li ", desReg + ", ", src1, "");
+		}
 	}
 	else if(set.curFTab.ReName() != "" && set.curFTab.in_ft(src1)){
-		insertCode("lw ", desReg + ", ", to_string(set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr), "($sp)");		//函数常变量(存于函数参数后)
+		desReg = InReg_T(src1);
+		if (desReg == "") {
+			desReg = AllocateNextReg(src1);
+			insertCode("lw ", desReg + ", ", to_string(set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr), "($sp)");		//函数常变量(存于函数参数后)
+		}
 	}
 	else if (set.curFTab.ReName() != "" && set.curFTab.in_para(src1)) {
-		insertCode("lw ", desReg + ", ", to_string(set.curFTab.ret_ifo().adr), "($sp)");		//函数参数
+		desReg = InReg_T(src1);
+		if (desReg == "") {
+			desReg = AllocateNextReg(src1);
+			insertCode("lw ", desReg + ", ", to_string(set.curFTab.ret_ifo().adr), "($sp)");		//函数参数
+		}
 	}
 	else if (set.in_Tab(src1)) {
-		insertCode("lw ", desReg + ", ", to_string(set.reInfo().adr), "($gp)");		//全局变量
+		if (set.reInfo().reg != "") {
+			desReg = set.reInfo().reg;
+			if (reg_S[ReRegIndex(desReg)] != src1) {
+				if(reg_S[ReRegIndex(desReg)] != ""){										//若对应位置有全局变量占用，则保存后覆盖
+					set.in_Tab(reg_S[ReRegIndex(desReg)]);
+					insertCode("sw ", desReg + ", ", to_string(set.reInfo().adr), "($gp)"); 
+					set.in_Tab(src1);
+				}
+				reg_S[ReRegIndex(desReg)] = src1;
+				insertCode("lw ", desReg + ", ", to_string(set.reInfo().adr), "($gp)");		//全局变量
+			}
+		}
+		else {
+			desReg = InReg_T(src1);
+			if (desReg == "") {
+				desReg = AllocateNextReg(src1);
+				insertCode("lw ", desReg + ", ", to_string(set.reInfo().adr), "($gp)");		//全局变量
+			}
+		}
 	}
 }
 
@@ -129,10 +288,11 @@ void MipsCode::genMipsCode() {
 				for (pushadr = set.reFTable().ret_para().ret_TableSize() - 4; pushadr >= 0; pushadr -= 4) {
 					string para = *(para_name.end() - 1);
 					para_name.pop_back();
-					LoadInReg("$t1", para);
+					LoadInReg(para);
+					string temp = AllocateReg(para);
 					if (set.in_FTab(i->des)) {
 						int size = set.reFTable().ret_FTableSize();
-						insertCode("sw ", "$t1, ", to_string(pushadr - size - 60), "($sp)");
+						insertCode("sw ", temp + ", ", to_string(pushadr - size - 4), "($sp)");
 					}
 				}
 			}
@@ -148,6 +308,7 @@ void MipsCode::genMipsCode() {
 				infunc = 1;
 				insertCode("j ", "main", "", "");
 			}
+			ResetRegT();
 			set.in_FTab(i->des);
 			set.curFTab = set.reFTable();
 			insertCode(i->des, ":", "", "");
@@ -158,6 +319,7 @@ void MipsCode::genMipsCode() {
 				infunc = 1;
 				insertCode("j ", "main", "", "");
 			}
+			ResetRegT();
 			set.in_FTab(i->des);
 			set.curFTab = set.reFTable();
 			insertCode(i->des, ":", "", "");
@@ -168,6 +330,7 @@ void MipsCode::genMipsCode() {
 				infunc = 1;
 				insertCode("j ", "main", "", "");
 			}
+			ResetRegT();
 			set.in_FTab(i->des);
 			set.curFTab = set.reFTable();
 			insertCode(i->des, ":", "", "");
@@ -175,6 +338,7 @@ void MipsCode::genMipsCode() {
 		}
 		case Quaternary::mainfunc: {
 			infunc = 1;
+			ResetRegT();
 			set.in_FTab("main");
 			set.curFTab = set.reFTable();
 			insertCode("main:", "", "", "");
@@ -184,43 +348,69 @@ void MipsCode::genMipsCode() {
 		case Quaternary::funcend: {			//函数结束
 			insertCode("addi ", "$sp, ", "$sp, ", to_string(set.curFTab.ret_FTableSize()));
 			insertCode("jr ", "$ra", "", "");
+			EndResetRegT();
 //			LoadReg();	//还原寄存器现场
 			break;
 		}
 		case Quaternary::assign: {
-			LoadInReg("$t0", i->src1);
-			StoreToRam("$t0", i->des);
+			LoadInReg(i->src1);
+//			LoadInReg(i->des);
+			string reg = AllocateReg(i->des);
+			if (is_S(reg)) {							//若des是全局变量，赋值前需保存共享的变量。
+				BeforeAssignS(i->des);
+			}
+			insertCode("addi ", searchReg(i->des) + ", ", searchReg(i->src1), ", 0");
+//			StoreToRam("$t0", i->des);
 			break;
 		}
 		case Quaternary::arrassign: {
 			if (set.in_ATab(i->src1)) {					//adr全局数组元素 = 4*下标 + 全局常变量表大小 + 在数组表中的地址
 				if (isNum(i->src2)) {
-					insertCode("lw ", "$t0, ", to_string(set.getTab().ret_TableSize() + set.reInfo().adr + 4 * atoi((i->src2).c_str())), "($gp)");
-					StoreToRam("$t0", i->des);
+					string reg_temp1 = AllocateReg(i->des);
+					if (is_S(reg_temp1)) {								//若des是全局变量，赋值前需保存共享的变量。
+						BeforeAssignS(i->des);
+					}
+					set.in_ATab(i->src1);
+					insertCode("lw ", reg_temp1 + ", ", to_string(set.getTab().ret_TableSize() + set.reInfo().adr + 4 * atoi((i->src2).c_str())), "($gp)");
+//					StoreToRam(reg_temp, i->des);
 				}
 				else {
+					set.in_ATab(i->src1);
 					int size = set.getTab().ret_TableSize() + set.reInfo().adr;
-					LoadInReg("$t0", i->src2);
-					insertCode("sll ", "$t0, ", "$t0, ", "2");
-					insertCode("addi ", "$t0, ", "$t0, ", to_string(size));
-					insertCode("add ", "$t0, ", "$t0, ", "$gp");
-					insertCode("lw ", "$t0, ", "0", "($t0)");
-					StoreToRam("$t0", i->des);
+					LoadInReg(i->src2);
+					string reg_temp1 = AllocateReg(i->src2);
+					string reg_temp2 = AllocateReg("Temp");				//中间变量寄存器:用以计算地址和存储结果
+					string reg_temp3 = AllocateReg(i->des);
+					if (is_S(reg_temp3)) {
+						BeforeAssignS(i->des);
+					}
+					insertCode("sll ", reg_temp2 + ", ", reg_temp1 + ", ", "2");
+					insertCode("addi ", reg_temp2 + ", ", reg_temp2 + ", ", to_string(size));
+					insertCode("add ", reg_temp2 + ", ", reg_temp2 + ", ", "$gp");
+					insertCode("lw ", reg_temp3 + ", ", "0", "(" + reg_temp2 + ")");	//des = src1[src2]
 				}
 			}
 			else if (set.curFTab.in_arr(i->src1)) {		//adr函数数组元素 = 4*下标 + 函数参数表大小 + 函数变量表大小 + 在数组表中的地址
 				if (isNum(i->src2)) {
-					insertCode("lw ", "$t0, ", to_string(set.curFTab.ret_ft().ret_TableSize() + set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr + 4 * atoi((i->src2).c_str())), "($sp)");
-					StoreToRam("$t0", i->des);
+					string reg_temp1 = AllocateReg(i->des);
+					if (is_S(reg_temp1)) {								//若des是全局变量，赋值前需保存共享的变量。
+						BeforeAssignS(i->des);
+					}
+					set.curFTab.in_arr(i->src1);
+					insertCode("lw ", reg_temp1 + ", ", to_string(set.curFTab.ret_ft().ret_TableSize() + set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr + 4 * atoi((i->src2).c_str())), "($sp)");
+//					StoreToRam("$t0", i->des);
 				}
 				else {
 					int size = set.curFTab.ret_ft().ret_TableSize() + set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr;
-					LoadInReg("$t0", i->src2);
-					insertCode("sll ", "$t0, ", "$t0, ", "2");
-					insertCode("addi ", "$t0, ", "$t0, ", to_string(size));
-					insertCode("add ", "$t0, ", "$t0, ", "$sp");
-					insertCode("lw ", "$t0, ", "0", "($t0)");
-					StoreToRam("$t0", i->des);
+					LoadInReg(i->src2);
+					string temp1 = searchReg(i->src2);
+					string temp2 = searchReg("Temp");
+					string temp3 = searchReg(i->des);
+					insertCode("sll ", temp2 + ", ", temp1 + ", ", "2");
+					insertCode("addi ", temp2 + ", ", temp2 + ", ", to_string(size));
+					insertCode("add ", temp2 + ", ", temp2 + ", ", "$sp");
+					insertCode("lw ", temp3 + ", ", "0", "(" + temp2 +")");
+//					StoreToRam("$t0", i->des);
 				}
 			}
 			break;
@@ -230,34 +420,42 @@ void MipsCode::genMipsCode() {
 				int size;
 				if (isNum(i->src1)) {
 					size = set.getTab().ret_TableSize() + set.reInfo().adr + 4 * atoi((i->src1).c_str());
-					LoadInReg("$t0", i->src2);
-					insertCode("sw ", "$t0, ", to_string(size), "($gp)");
+					LoadInReg(i->src2);
+					string temp = AllocateReg(i->src2);
+					insertCode("sw ", temp + ", ", to_string(size), "($gp)");
 				}
 				else {
 					size = set.getTab().ret_TableSize() + set.reInfo().adr;
-					LoadInReg("$t0", i->src1);
-					insertCode("sll ", "$t0, ", "$t0, ", "2");
-					insertCode("addi ", "$t0, ", "$t0, ", to_string(size));
-					insertCode("add ", "$t0, ", "$t0, ", "$gp");
-					LoadInReg("$t1", i->src2);
-					insertCode("sw ", "$t1, ", "0", "($t0)");
+					LoadInReg(i->src1);
+					string temp1 = AllocateReg(i->src1);
+					string temp2 = AllocateReg("Temp");
+					insertCode("sll ", temp2 + ", ", temp1 + ", ", "2");
+					insertCode("addi ", temp2 + ", ", temp2 + ", ", to_string(size));
+					insertCode("add ", temp2 + ", ", temp2 + ", ", "$gp");
+					LoadInReg(i->src2);
+					string temp3 = AllocateReg(i->src2);
+					insertCode("sw ", temp3 + ", ", "0", "(" + temp2 + ")");
 				}
 			}
 			else if (set.curFTab.in_arr(i->des)) {		//adr函数数组元素 = 4*下标 + 函数参数表大小 + 函数变量表大小 + 在数组表中的地址
 				int size;
 				if (isNum(i->src1)) {
 					size = set.curFTab.ret_ft().ret_TableSize() + set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr + 4 * atoi((i->src1).c_str());
-					LoadInReg("$t0", i->src2);
-					insertCode("sw ", "$t0, ", to_string(size), "($sp)");
+					LoadInReg(i->src2);
+					string temp = AllocateReg(i->src2);
+					insertCode("sw ", temp + ", ", to_string(size), "($sp)");
 				}
 				else{
 					size = set.curFTab.ret_ft().ret_TableSize() + set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr;
-					LoadInReg("$t0", i->src1);
-					insertCode("sll ", "$t0, ", "$t0, ", "2");
-					insertCode("addi ", "$t0, ", "$t0, ", to_string(size));
-					insertCode("add ", "$t0, ", "$t0, ", "$sp");
-					LoadInReg("$t1", i->src2);
-					insertCode("sw ", "$t1, ", "0", "($t0)");
+					LoadInReg(i->src1);
+					string temp1 = AllocateReg(i->src1);
+					string temp2 = AllocateReg("Temp");
+					insertCode("sll ", temp2 + ", ", temp1 + ", ", "2");
+					insertCode("addi ", temp2 + ", ", temp2 + ", ", to_string(size));
+					insertCode("add ", temp2 + ", ", temp2 + ", ", "$sp");
+					LoadInReg(i->src2);
+					string temp3 = AllocateReg(i->src2);
+					insertCode("sw ", temp3 + ", ", "0", "(" + temp2 + ")");
 				}
 			}
 			break;
@@ -267,75 +465,116 @@ void MipsCode::genMipsCode() {
 			break;
 		}
 		case Quaternary::add: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("add ", "$t0,", "$t1,", "$t2");
-			StoreToRam("$t0", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			string temp3 = AllocateReg(i->des);
+			if (is_S(temp3)) {							//若des是全局变量，赋值前需保存共享的变量。
+				BeforeAssignS(i->des);
+			}
+			insertCode("add ", temp3 + ",", temp1 + ",", temp2 + "");
+//			StoreToRam("$t0", i->des);
 			break;
 		}
 		case Quaternary::sub: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("sub ", "$t0,", "$t1,", "$t2");
-			StoreToRam("$t0", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			string temp3 = AllocateReg(i->des);
+			if (is_S(temp3)) {							//若des是全局变量，赋值前需保存共享的变量。
+				BeforeAssignS(i->des);
+			}
+			insertCode("sub ", temp3 + ",", temp1 + ",", temp2 + "");
+			//			StoreToRam("$t0", i->des);
 			break;
 		}
 		case Quaternary::div: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("div ", "$t1, ", "$t2", "");
-			insertCode("mflo ", "$t0", "", "");
-			StoreToRam("$t0", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			string temp3 = AllocateReg(i->des);
+			if (is_S(temp3)) {							//若des是全局变量，赋值前需保存共享的变量。
+				BeforeAssignS(i->des);
+			}
+			insertCode("div ", temp1 + ",", temp2 + "", "");
+			insertCode("mflo ", temp3, "", "");
+//			StoreToRam("$t0", i->des);
 			break;
 		}
 		case Quaternary::mult: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("mult ", "$t1, ", "$t2", "");
-			insertCode("mflo ", "$t0", "", "");
-			StoreToRam("$t0", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			string temp3 = AllocateReg(i->des);
+			if (is_S(temp3)) {							//若des是全局变量，赋值前需保存共享的变量。
+				BeforeAssignS(i->des);
+			}
+			insertCode("mult ", temp1 + ",", temp2 + "", "");
+			insertCode("mflo ", temp3, "", "");
+			//StoreToRam("$t0", i->des);
 			break;
 		}
 		case Quaternary::neg: {
-			LoadInReg("$t1", i->src1);
-			insertCode("sub ", "$t0,", "$0,", "$t1");
-			StoreToRam("$t0", i->des);
+			LoadInReg(i->src1);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->des);
+			if (is_S(temp2)) {							//若des是全局变量，赋值前需保存共享的变量。
+				BeforeAssignS(i->des);
+			}
+			insertCode("sub ", temp2 + ",", "$0,", temp1);
+//			StoreToRam("$t0", i->des);
 			break;
 		}
 		case Quaternary::beq: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("beq ", "$t1, ", "$t2, ", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			insertCode("beq ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
 		case Quaternary::bne: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("bne ", "$t1, ", "$t2, ", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			insertCode("bne ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
 		case Quaternary::bls: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("blt ", "$t1, ", "$t2, ", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			insertCode("blt ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
 		case Quaternary::ble: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("ble ", "$t1, ", "$t2, ", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			insertCode("ble ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
 		case Quaternary::bgt: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("bgt ", "$t1, ", "$t2, ", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			insertCode("bgt ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
 		case Quaternary::bge: {
-			LoadInReg("$t1", i->src1);
-			LoadInReg("$t2", i->src2);
-			insertCode("bge ", "$t1, ", "$t2, ", i->des);
+			LoadInReg(i->src1);
+			LoadInReg(i->src2);
+			string temp1 = AllocateReg(i->src1);
+			string temp2 = AllocateReg(i->src2);
+			insertCode("bge ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
 		case Quaternary::label: {
@@ -350,9 +589,12 @@ void MipsCode::genMipsCode() {
 			break;
 		}
 		case Quaternary::ret: {
-			LoadInReg("$v0", i->des);
+			LoadInReg(i->des);
+			string temp = AllocateReg(i->des);
+			insertCode("addi ", "$v0, ", temp + ", ", "0");
 			insertCode("addi ", "$sp, ", "$sp, ", to_string(set.curFTab.ret_FTableSize()));
 			insertCode("jr ", "$ra", "", "");
+//			EndResetRegT();
 //			LoadReg();	//还原寄存器现场
 			break;
 		}
@@ -365,24 +607,44 @@ void MipsCode::genMipsCode() {
 				if (set.curFTab.ret_ifo().typ == info::ints) {
 					insertCode("li ", "$v0, ", "5", "");
 					insertCode("syscall", "", "", "");
-					StoreToRam("$v0", i->des);
+					string reg = AllocateReg(i->des);
+					if (is_S(reg)) {							//若des是全局变量，赋值前需保存共享的变量。
+						BeforeAssignS(i->des);
+					}
+					insertCode("addi ", reg + ", ", "$v0, ", "0");
+					//StoreToRam("$v0", i->des);
 				}
 				else {
 					insertCode("li ", "$v0, ", "12", "");
 					insertCode("syscall", "", "", "");
-					StoreToRam("$v0", i->des);
+					string reg = AllocateReg(i->des);
+					if (is_S(reg)) {							//若des是全局变量，赋值前需保存共享的变量。
+						BeforeAssignS(i->des);
+					}
+					insertCode("addi ", reg + ", ", "$v0, ", "0");
+					//StoreToRam("$v0", i->des);
 				}
 			}
 			else if (set.in_Tab(i->des)) {
 				if (set.reInfo().typ == info::ints) {
 					insertCode("li ", "$v0, ", "5", "");
 					insertCode("syscall", "", "", "");
-					StoreToRam("$v0", i->des);
+					string reg = AllocateReg(i->des);
+					if (is_S(reg)) {							//若des是全局变量，赋值前需保存共享的变量。
+						BeforeAssignS(i->des);
+					}
+					insertCode("addi ", reg + ", ", "$v0, ", "0");
+					//StoreToRam("$v0", i->des);
 				}
 				else {
 					insertCode("li ", "$v0, ", "12", "");
 					insertCode("syscall", "", "", "");
-					StoreToRam("$v0", i->des);
+					string reg = AllocateReg(i->des);
+					if (is_S(reg)) {							//若des是全局变量，赋值前需保存共享的变量。
+						BeforeAssignS(i->des);
+					}
+					insertCode("addi ", reg + ", ", "$v0, ", "0");
+					//StoreToRam("$v0", i->des);
 				}
 			}
 			break;
@@ -391,36 +653,48 @@ void MipsCode::genMipsCode() {
 			if (set.in_Tab(i->des)) {
 				if (set.reInfo().typ == info::chars) {
 					insertCode("li ", "$v0, ", "11", "");
-					LoadInReg("$a0", i->des);
+					LoadInReg(i->des);
+					string temp = AllocateReg(i->des);
+					insertCode("addi ", "$a0, ", temp + ", ", "0");
 					insertCode("syscall", "", "", "");
 				}
 				else {
 					insertCode("li ", "$v0, ", "1", "");
-					LoadInReg("$a0", i->des);
+					LoadInReg(i->des);
+					string temp = AllocateReg(i->des);
+					insertCode("addi ", "$a0, ", temp + ", ", "0");
 					insertCode("syscall", "", "", "");
 				}
 			}
 			else if (set.curFTab.in_ft(i->des) || set.curFTab.in_para(i->des)) {
 				if (set.curFTab.ret_ifo().typ == info::chars) {
 					insertCode("li ", "$v0, ", "11", "");
-					LoadInReg("$a0", i->des);
+					LoadInReg(i->des);
+					string temp = AllocateReg(i->des);
+					insertCode("addi ", "$a0, ", temp + ", ", "0");
 					insertCode("syscall", "", "", "");
 				}
 				else {
 					insertCode("li ", "$v0, ", "1", "");
-					LoadInReg("$a0", i->des);
+					LoadInReg(i->des);
+					string temp = AllocateReg(i->des);
+					insertCode("addi ", "$a0, ", temp + ", ", "0");
 					insertCode("syscall", "", "", "");
 				}
 			}
 			else if (isNum(i->des)) {
 				if (i->src1 == "char") {
 					insertCode("li ", "$v0, ", "11", "");
-					LoadInReg("$a0", i->des);
+					LoadInReg(i->des);
+					string temp = AllocateReg(i->des);
+					insertCode("addi ", "$a0, ", temp + ", ", "0");
 					insertCode("syscall", "", "", "");
 				}
 				else {
 					insertCode("li ", "$v0, ", "1", "");
-					LoadInReg("$a0", i->des);
+					LoadInReg(i->des);
+					string temp = AllocateReg(i->des);
+					insertCode("addi ", "$a0, ", temp + ", ", "0");
 					insertCode("syscall", "", "", "");
 				}
 			}
@@ -437,19 +711,25 @@ void MipsCode::genMipsCode() {
 		case Quaternary::constdef: {
 			if (infunc == 0) {				//全局常量定义
 				set.in_Tab(i->des);
-				if (set.reInfo().typ == info::ints)
-					insertCode("li ", "$t0, ", to_string(set.reInfo().value), "");
+				string temp = AllocateReg(i->des);
+				if (is_S(temp)) {
+					BeforeAssignS(i->des);
+				}
+				if (set.reInfo().typ == info::ints) {
+					insertCode("li ", temp + ", ", to_string(set.reInfo().value), "");
+				}
 				else
-					insertCode("li ", "$t0, ", to_string(int(set.reInfo().ch)), "");
-				StoreToRam("$t0", i->des);
+					insertCode("li ", temp + ", ", to_string(int(set.reInfo().ch)), "");
+//				StoreToRam("$t0", i->des);
 			}
 			else {							//函数内常量定义
 				set.curFTab.in_ft(i->des);
+				string temp = AllocateNextReg(i->des);
 				if (set.curFTab.ret_ifo().typ == info::ints)
-					insertCode("li ", "$t0, ", to_string(set.curFTab.ret_ifo().value), "");
+					insertCode("li ", temp + ", ", to_string(set.curFTab.ret_ifo().value), "");
 				else
-					insertCode("li ", "$t0, ", to_string(int(set.curFTab.ret_ifo().ch)), "");
-				StoreToRam("$t0", i->des);
+					insertCode("li ", temp + ", ", to_string(int(set.curFTab.ret_ifo().ch)), "");
+//				StoreToRam("$t0", i->des);
 			}
 			break;
 		}

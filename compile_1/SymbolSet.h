@@ -17,6 +17,7 @@ public:
 		obj = noobject;
 		adr = 0;
 		size = 4;
+		reg = "";
 	}
 	void reset(){
 		value = 0;
@@ -26,6 +27,7 @@ public:
 		obj = noobject;
 		adr = 0;
 		size = 4;
+		reg = "";
 	}
 	enum type {ints, chars, notype};
 	enum object{constsy, varsy, arrays, noobject};
@@ -36,6 +38,7 @@ public:
 	object obj;
 	int adr;		//翻译中间代码时需补充adr
 	int size;
+	string reg;
 };
 
 class Table {
@@ -46,6 +49,8 @@ public:
 	info ret_info() { return ifo; }
 	void PrintTable();
 	int ret_TableSize() { return tablesize; }
+	void setreg(string name, string reg);
+	string reReg(string name);
 private:
 	info ifo;
 	int adr;
@@ -102,6 +107,7 @@ public:
 	int isInFunc() { return (curFTab.ReName().length() != 0); }
 	void PrintSymbolSet();
 	FTable curFTab;			//当前处理的函数,在对每个函数处理完毕后，在结尾时调用ins_Ftab插入FTab
+	void SetTabReg(string name, string reg) { Tab.setreg(name, reg); }
 
 private:
 	FTable reFTab;			//用以返回索引后的的函数内容

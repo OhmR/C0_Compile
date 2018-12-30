@@ -181,6 +181,8 @@ public:
 	void InsertCode(string op, string des) { code.push_back(op + des); }
 	void InsertCode(string op) { code.push_back(op); }
 	void ResetCurBlock() { cur_block = Block::Block(); }
+	vector<Quaternary> ReMiddleCode() { return optimiz_middlecode; }
+	vector<Block> ReAllBlock() { return all_block; }
 
 	void gen_block_subscript();				//依据中间代码划分基本块
 	void gen_all_block();					//依据划分结果生成基本块（依赖gen_block_subscript()）
@@ -194,10 +196,9 @@ public:
 	void GenCalculateDag(Quaternary temp);	//若四元式为z = x op y类型语句，通过该函数进行DAG图及结点表建立
 	void GenAssignDag(Quaternary temp);
 	void GenNegDag(Quaternary temp);
-	void TransDagToCode(DAG DagPic);					//依据dag图信息生成对应中间代码，并插入cur_block后
+	void TransDagToCode(DAG DagPic);		//依据dag图信息生成对应中间代码，并插入cur_block后
 	void TransNodeToCode(DAG_NODE node);
 	void GenOptMiddlecode();
-	vector<Quaternary> ReMiddleCode() { return optimiz_middlecode; }
 	int InAssign(string name);
 
 private:

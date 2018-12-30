@@ -1,0 +1,37 @@
+const int NUm1 = 10;
+char ch;
+
+int re_a(int i){
+	int num1;
+	num1 = i;
+	num1 = num1 + 1;
+	return (num1);
+}
+
+void test0(int a, char b){
+	int i;
+	for(i = 0; i < a; i = i + 1){
+		printf("helloworld!");
+	}
+}
+
+void test1{
+	if(1 > 2){
+		printf("abc");
+	}
+	else{
+		printf("edf");
+	}
+}
+
+char test2(char a){
+	char b;
+	b = a;
+	return (b);
+}
+
+void main(){
+	int a;
+	a = num1;
+	printf(re_a(a));
+}

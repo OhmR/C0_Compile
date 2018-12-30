@@ -25,6 +25,12 @@ void Error::ErrorMessage(int errortype, int line) {
 	case 10:
 		cout << "In condition, two ident type are unmap" << endl;
 		break;
+	case 13:
+		cout << "illegal return statement in a int or char func" << endl;
+		break;
+	case 14:
+		cout << "illegal return statement in a void func" << endl;
+		break;
 	default:
 		break;
 	}
@@ -59,6 +65,18 @@ void Error::ErrorMessage(int errortype, int line, string message1) {
 	case 12:
 		cout << "Illegal assign to const " + message1 << endl;
 		break;
+	case 15:
+		cout << "In condition, " + message1 + " is illegal type char" << endl;
+		break;
+	case 16:
+		cout << "return a char message in not char func " + message1 << endl;
+		break;
+	case 17:
+		cout << "return a int message in not int func " + message1 << endl;
+		break;
+	case 18:
+		cout << "Unknown function name " + message1 << endl;
+		break;
 	default:
 		break;
 	}
@@ -75,8 +93,8 @@ void Error::ErrorMessage(int errortype, int line, string message1, string messag
 	case 7:
 		cout << "hope " + message1 + " after " + message2 + ",but we get another word" << endl;
 		break;
-
 	default:
+		cout << "3" << endl;
 		break;
 	}
 }

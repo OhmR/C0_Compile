@@ -1,4 +1,5 @@
-﻿  MipsCode.cpp
+﻿  MiddleCode.cpp
+  MipsCode.cpp
   OptimizationCode.cpp
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(99): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(131): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
@@ -6,11 +7,27 @@ e:\vs2017text\compile_2\compile_1\optimizationcode.h(139): warning C4267: “=�
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(165): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.cpp(70): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
   Parser.cpp
+  RegAllocate.cpp
+e:\vs2017text\compile_2\compile_1\optimizationcode.h(99): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+e:\vs2017text\compile_2\compile_1\optimizationcode.h(131): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+e:\vs2017text\compile_2\compile_1\optimizationcode.h(139): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+e:\vs2017text\compile_2\compile_1\optimizationcode.h(165): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+e:\vs2017text\compile_2\compile_1\regallocate.cpp(169): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+e:\vs2017text\compile_2\compile_1\regallocate.cpp(197): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  SymbolSet.cpp
+f:\visualstudio\ide\vc\tools\msvc\14.15.26726\include\algorithm(1443): warning C4244: “=”: 从“wint_t”转换到“char”，可能丢失数据
+  e:\vs2017text\compile_2\compile_1\symbolset.cpp(13): note: 参见对正在编译的函数 模板 实例化“_OutIt std::transform<std::_String_iterator<std::_String_val<std::_Simple_types<_Ty>>>,std::_String_iterator<std::_String_val<std::_Simple_types<_Ty>>>,wint_t(__cdecl *)(wint_t)>(const _InIt,const _InIt,_OutIt,_Fn)”的引用
+          with
+          [
+              _OutIt=std::_String_iterator<std::_String_val<std::_Simple_types<char>>>,
+              _Ty=char,
+              _InIt=std::_String_iterator<std::_String_val<std::_Simple_types<char>>>,
+              _Fn=wint_t (__cdecl *)(wint_t)
+          ]
   compile_1.cpp
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(99): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(131): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(139): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
 e:\vs2017text\compile_2\compile_1\optimizationcode.h(165): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
-  lexical.cpp
   正在生成代码...
   compile_1.vcxproj -> E:\vs2017text\compile_2\x64\Debug\compile_1.exe

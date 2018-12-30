@@ -140,11 +140,11 @@ void Parser::isChar() {				//×Ö·û
 			char tmp[10];
 			tmp[0] = charvalue;
 			string temp = tmp;
-			err.ErrorMessage(5, lex->return_linenum(), temp);
+			err.ErrorMessage(4, lex->return_linenum(), temp);
 		}
 	}
 	else {
-		err.ErrorMessage(4, lex->return_linenum(), "charcon", lex->symbol_string[lex->return_sy()]);
+		err.ErrorMessage(5, lex->return_linenum(), "charcon", lex->symbol_string[lex->return_sy()]);
 	}
 }
 void Parser::program() {			//³ÌĞò£º[£¼³£Á¿ËµÃ÷£¾£İ£Û£¼±äÁ¿ËµÃ÷£¾£İ{£¼ÓĞ·µ»ØÖµº¯Êı¶¨Òå£¾|£¼ÎŞ·µ»ØÖµº¯Êı¶¨Òå£¾}£¼Ö÷º¯Êı£¾
@@ -180,6 +180,7 @@ void Parser::program() {			//³ÌĞò£º[£¼³£Á¿ËµÃ÷£¾£İ£Û£¼±äÁ¿ËµÃ÷£¾£İ{£¼ÓĞ·µ»ØÖµº¯Ê
 			compoundStatement();		//¸´ºÏÓï¾ä
 			if (lex->return_sy() == lexical::rbrace) {	//'}'
 				set.insert_FTab();		//±êÖ¾×ÅÒ»¸öº¯Êı·ÖÎöÍê³É
+				Code.genLabel(Quaternary::label, "label_" + set.curFTab.ReName());
 				Code.genFuncEnd(Quaternary::funcend);
 				lex->getsy();
 			}
@@ -233,7 +234,7 @@ void Parser::constDec() {			//³£Á¿ËµÃ÷
 		lex->getsy();
 		constDef();
 		if (lex->return_sy() != lex->semicolon) {		//ÅĞ¶Ï·ÖºÅ½áÎ²
-			err.ErrorMessage(4, lex->return_linenum(), "semicolon", lex->symbol_string[lex->return_sy()]);
+			err.ErrorMessage(5, lex->return_linenum(), "semicolon", lex->symbol_string[lex->return_sy()]);
 			JumpToChar(';');
 		}
 		else
@@ -264,7 +265,7 @@ void Parser::constDef() {			//³£Á¿¶¨Òå:int£¼±êÊ¶·û£¾£½£¼ÕûÊı£¾{,£¼±êÊ¶·û£¾£½£¼Õû
 					}
 				}
 				else {
-					err.ErrorMessage(4, lex->return_linenum(), "assign", lex->symbol_string[lex->return_sy()]);
+					err.ErrorMessage(5, lex->return_linenum(), "assign", lex->symbol_string[lex->return_sy()]);
 					while (lex->return_sy()!= lexical::semicolon && lex->return_sy() != lexical::comma) {	//ÔÚ¶ººÅºÍ·ÖºÅÊ±Í£×¡
 						lex->getsy();
 					}
@@ -273,7 +274,7 @@ void Parser::constDef() {			//³£Á¿¶¨Òå:int£¼±êÊ¶·û£¾£½£¼ÕûÊı£¾{,£¼±êÊ¶·û£¾£½£¼Õû
 			}
 			else
 			{
-				err.ErrorMessage(4, lex->return_linenum(), "indent", lex->symbol_string[lex->return_sy()]);
+				err.ErrorMessage(5, lex->return_linenum(), "indent", lex->symbol_string[lex->return_sy()]);
 				while (lex->return_sy() != lexical::semicolon && lex->return_sy() != lexical::comma) {	//ÔÚ¶ººÅºÍ·ÖºÅÊ±Í£×¡
 					lex->getsy();
 				}
@@ -302,7 +303,7 @@ void Parser::constDef() {			//³£Á¿¶¨Òå:int£¼±êÊ¶·û£¾£½£¼ÕûÊı£¾{,£¼±êÊ¶·û£¾£½£¼Õû
 					}
 				}
 				else {
-					err.ErrorMessage(4, lex->return_linenum(), "eql", lex->symbol_string[lex->return_sy()]);
+					err.ErrorMessage(5, lex->return_linenum(), "eql", lex->symbol_string[lex->return_sy()]);
 					while (lex->return_sy() != lexical::semicolon && lex->return_sy() != lexical::comma) {	//ÔÚ¶ººÅºÍ·ÖºÅÊ±Í£×¡
 						lex->getsy();
 					}
@@ -310,7 +311,7 @@ void Parser::constDef() {			//³£Á¿¶¨Òå:int£¼±êÊ¶·û£¾£½£¼ÕûÊı£¾{,£¼±êÊ¶·û£¾£½£¼Õû
 				}
 			}
 			else {
-				err.ErrorMessage(4, lex->return_linenum(), "indent", lex->symbol_string[lex->return_sy()]);
+				err.ErrorMessage(5, lex->return_linenum(), "indent", lex->symbol_string[lex->return_sy()]);
 				while (lex->return_sy() != lexical::semicolon && lex->return_sy() != lexical::comma) {	//ÔÚ¶ººÅºÍ·ÖºÅÊ±Í£×¡
 					lex->getsy();
 				}
@@ -320,7 +321,7 @@ void Parser::constDef() {			//³£Á¿¶¨Òå:int£¼±êÊ¶·û£¾£½£¼ÕûÊı£¾{,£¼±êÊ¶·û£¾£½£¼Õû
 //		cout << "this is constDef" << endl;
 	}
 	else {
-		err.ErrorMessage(4, lex->return_linenum(), "intsy or charsy", lex->symbol_string[lex->return_sy()]);
+		err.ErrorMessage(5, lex->return_linenum(), "intsy or charsy", lex->symbol_string[lex->return_sy()]);
 	}
 }
 int Parser::unsignInt() {			//ÎŞ·ûºÅÕûÊı
@@ -331,7 +332,7 @@ int Parser::unsignInt() {			//ÎŞ·ûºÅÕûÊı
 		return 1;
 	}
 	else {
-		err.ErrorMessage(4, lex->return_linenum(), "intcon", lex->symbol_string[lex->return_sy()]);
+		err.ErrorMessage(5, lex->return_linenum(), "intcon", lex->symbol_string[lex->return_sy()]);
 		return 0;
 	}
 }
@@ -363,7 +364,7 @@ void Parser::Int() {				//ÕûÊı
 }
 int Parser::identity() {			//±êÊ¶·û
 	if (lex->return_sy() != lexical::ident) {
-		err.ErrorMessage(4, lex->return_linenum(), "ident", lex->symbol_string[lex->return_sy()]);
+		err.ErrorMessage(5, lex->return_linenum(), "ident", lex->symbol_string[lex->return_sy()]);
 		return 0;
 	}
 	else{
@@ -500,6 +501,7 @@ void Parser::reFuncDef() {								//ÓĞ·µ»Øº¯Êı¶¨Òå
 		compoundStatement();							//¸´ºÏÓï¾ä
 		if (lex->return_sy() == lexical::rbrace) {	//'}'
 			set.insert_FTab();						//±êÖ¾×ÅÒ»¸öº¯ÊıµÄ·ûºÅ±í½¨Á¢Íê³É
+			Code.genLabel(Quaternary::label, "label_" + set.curFTab.ReName());
 			Code.genFuncEnd(Quaternary::funcend);
 			lex->getsy();
 		}
@@ -533,6 +535,7 @@ void Parser::noFuncDef() {			//ÎŞ·µ»Øº¯Êı¶¨Òå
 		compoundStatement();		//¸´ºÏÓï¾ä
 		if (lex->return_sy() == lexical::rbrace) {	//'}'
 			set.insert_FTab();						//±êÖ¾×Åµ±Ç°º¯Êı·ûºÅ±í½¨Á¢Íê³É
+			Code.genLabel(Quaternary::label, "label_" + set.curFTab.ReName());
 			Code.genFuncEnd(Quaternary::funcend);
 			lex->getsy();
 		}
@@ -593,6 +596,7 @@ void Parser::mainFunc() {			//Ö÷º¯Êı
 				compoundStatement();
 				if (lex->return_sy() == lexical::rbrace) {
 					set.insert_FTab();			//±ê¼Çmianº¯Êı´¦ÀíÍê±Ï
+					Code.genLabel(Quaternary::label, "label_" + set.curFTab.ReName());
 //					cout << "this is main!" << endl;
 				}
 				else {
@@ -716,15 +720,17 @@ void Parser::factor() {				//Òò×Ó:=£¼±êÊ¶·û£¾£ü£¼±êÊ¶·û£¾¡®[¡¯£¼±í´ïÊ½£¾¡®]¡¯|¡®
 			}
 
 			if (isNum(operande)) {		//Êı×éÔ½½ç´íÎó
-				if (transNum(operande) > arraysize)
+				if (transNum(operande) >= arraysize)
 					err.ErrorMessage(11, lex->return_linenum(), temp_name);
+			}
+			else if (set.curFTab.in_ft(operande)) {
+				if (set.curFTab.ret_ifo().obj == info::constsy) {
+					if (set.curFTab.ret_ifo().value >= arraysize)
+						err.ErrorMessage(11, lex->return_linenum(), temp_name);
+				}
 			}
 			else if (set.in_Tab(operande) && set.reInfo().obj == info::constsy) {
-				if (set.reInfo().value > arraysize)
-					err.ErrorMessage(11, lex->return_linenum(), temp_name);
-			}
-			else if (set.curFTab.in_ft(operande) && set.curFTab.ret_ifo().obj == info::constsy) {
-				if (set.curFTab.ret_ifo().value > arraysize)
+				if (set.reInfo().value >= arraysize)
 					err.ErrorMessage(11, lex->return_linenum(), temp_name);
 			}
 
@@ -920,15 +926,20 @@ void Parser::assignStatement() {		//¸³ÖµÓï¾ä £¼±êÊ¶·û£¾£½£¼±í´ïÊ½£¾|£¼±êÊ¶·û£¾¡®
 //		reset_temp();
 
 		if (isNum(operande)) {		//Êı×éÔ½½ç´íÎó
-			if (transNum(operande) > arraysize)
+			if (transNum(operande) >= arraysize)
 				err.ErrorMessage(11, lex->return_linenum(), tmp);
+		}
+		else if (set.curFTab.in_ft(operande)) {
+			if (set.curFTab.ret_ifo().obj == info::constsy) {
+				if (set.curFTab.ret_ifo().value >= arraysize)
+					err.ErrorMessage(11, lex->return_linenum(), tmp);
+			}
+		}
+		else if (set.curFTab.in_arr(operande)) {	//ÈôÎªº¯Êı²ÎÊıÃû³Æ
+			;
 		}
 		else if (set.in_Tab(operande) && set.reInfo().obj == info::constsy) {
-			if (set.reInfo().value > arraysize)
-				err.ErrorMessage(11, lex->return_linenum(), tmp);
-		}
-		else if (set.curFTab.in_ft(operande) && set.curFTab.ret_ifo().obj == info::constsy) {
-			if (set.curFTab.ret_ifo().value > arraysize)
+			if (set.reInfo().value >= arraysize)
 				err.ErrorMessage(11, lex->return_linenum(), tmp);
 		}
 
@@ -955,8 +966,10 @@ void Parser::assignStatement() {		//¸³ÖµÓï¾ä £¼±êÊ¶·û£¾£½£¼±í´ïÊ½£¾|£¼±êÊ¶·û£¾¡®
 		if (!set.curFTab.in_ft(tmp) && !set.curFTab.in_para(tmp) && !set.in_Tab(tmp)) {
 			err.ErrorMessage(1, lex->return_linenum(), tmp);
 		}
-		if (set.curFTab.in_ft(tmp) && set.curFTab.ret_ifo().obj == info::constsy)		//¸ø³£Á¿¸³Öµ´íÎó
-			err.ErrorMessage(12, lex->return_linenum(), tmp);
+		if (set.curFTab.in_ft(tmp)) {		//¸ø³£Á¿¸³Öµ´íÎó
+			if(set.curFTab.ret_ifo().obj == info::constsy)
+				err.ErrorMessage(12, lex->return_linenum(), tmp);
+		}
 		else if (set.in_Tab(tmp) && set.reInfo().obj == info::constsy)
 			err.ErrorMessage(12, lex->return_linenum(), tmp);
 
@@ -1050,6 +1063,12 @@ string Parser::condition() {			//Ìõ¼ş £¼±í´ïÊ½£¾£¼¹ØÏµÔËËã·û£¾£¼±í´ïÊ½£¾£ü£¼±í´ï
 		if (type1 != type2) {
 			err.ErrorMessage(10, lex->return_linenum());
 		}
+		if (type1 == "char") {	//³öÏÖ 'a' > 'c' Ò»ÀàµÄÇé¿ö
+			err.ErrorMessage(15, lex->return_linenum(), op1);
+		}
+		else if (type2 == "char") {
+			err.ErrorMessage(15, lex->return_linenum(), op2);
+		}
 
 		label_temp = Code.GenLabelName(label++);
 		switch (relatesign)
@@ -1108,8 +1127,10 @@ void Parser::cycleStatement() {		//Ñ­»·Óï¾ä while ¡®(¡¯£¼Ìõ¼ş£¾¡®)¡¯£¼Óï¾ä£¾ |fo
 				expr();
 //				reset_temp();
 
-				if (set.curFTab.in_ft(name_temp) && set.curFTab.ret_ifo().obj == info::constsy)		//¸ø³£Á¿¸³Öµ´íÎó
-					err.ErrorMessage(12, lex->return_linenum(), name_temp);
+				if (set.curFTab.in_ft(name_temp)) {		//¸ø³£Á¿¸³Öµ´íÎó
+					if (set.curFTab.ret_ifo().obj == info::constsy)
+						err.ErrorMessage(12, lex->return_linenum(), name_temp);
+				}
 				else if (set.in_Tab(name_temp) && set.reInfo().obj == info::constsy)
 					err.ErrorMessage(12, lex->return_linenum(), name_temp);
 
@@ -1208,6 +1229,10 @@ void Parser::stepSize() {			//²½³¤
 void Parser::reFuncCall() {			//ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä
 	string temp_name = lex->return_name();		//º¯ÊıÃû
 	string T;
+	if (!set.in_FTab(temp_name) && temp_name != set.curFTab.ReName()) {
+		err.ErrorMessage(18, lex->return_linenum(), temp_name);
+	}
+
 	if (lex->return_sy() == lexical::lparent) {
 		lex->getsy();
 		valueParTable(temp_name);
@@ -1267,8 +1292,8 @@ void Parser::reFuncCall() {			//ÓĞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä
 }
 void Parser::noFuncCall() {			//ÎŞ·µ»ØÖµº¯Êıµ÷ÓÃÓï¾ä
 	string temp_name = lex->return_name();		//º¯ÊıÃû
-	if (!set.in_FTab(temp_name) && temp_name != set.curFTab.ReName()) {			//·Ç·¨Ãû³Æ
-		err.ErrorMessage(1, lex->return_linenum(), temp_name);
+	if (!set.in_FTab(temp_name) && temp_name != set.curFTab.ReName()) {			//·Ç·¨º¯ÊıÃû³Æ
+		err.ErrorMessage(18, lex->return_linenum(), temp_name);
 	}
 	else if (lex->return_sy() == lexical::lparent) {
 		lex->getsy();
@@ -1386,8 +1411,31 @@ void Parser::Return(){				//·µ»ØÓï¾ä
 	if (lex->return_sy() == lexical::returnsy) {
 		lex->getsy();
 		if (lex->return_sy() == lexical::lparent) {
+			if (set.curFTab.ReFuncType() == FTable::voidsy || set.curFTab.ReFuncType() == FTable::mainsy) {
+				err.ErrorMessage(14, lex->return_linenum());
+			}
 			lex->getsy();
 			expr();
+			
+			if (isNum(operande)) {		//ÅĞ¶Ï·µ»Ø±äÁ¿ÀàĞÍÓëº¯ÊıÀàĞÍÊÇ·ñÆ¥Åä
+				if (WriteConst == "char" && set.curFTab.ReFuncType() != FTable::charsy)
+					err.ErrorMessage(16, lex->return_linenum(), set.curFTab.ReName());
+				else if (WriteConst == "int" && set.curFTab.ReFuncType() != FTable::intsy)
+					err.ErrorMessage(17, lex->return_linenum(), set.curFTab.ReName());
+			}
+			else if (set.curFTab.in_ft(operande) || set.curFTab.in_para(operande)) {
+				if (set.curFTab.ret_ifo().typ == info::ints && set.curFTab.ReFuncType() != FTable::intsy)
+					err.ErrorMessage(17, lex->return_linenum(), set.curFTab.ReName());
+				else if (set.curFTab.ret_ifo().typ == info::chars && set.curFTab.ReFuncType() != FTable::charsy)
+					err.ErrorMessage(16, lex->return_linenum(), set.curFTab.ReName());
+			}
+			else if (set.in_Tab(operande)) {
+				if (set.reInfo().typ == info::ints && set.curFTab.ReFuncType() != FTable::intsy)
+					err.ErrorMessage(17, lex->return_linenum(), set.curFTab.ReName());
+				else if (set.reInfo().typ == info::chars && set.curFTab.ReFuncType() != FTable::charsy)
+					err.ErrorMessage(16, lex->return_linenum(), set.curFTab.ReName());
+			}
+
 //			reset_temp();
 			Code.genReturnSta(Quaternary::ret, operande);
 			if (lex->return_sy() != lexical::rparent) {
@@ -1402,6 +1450,12 @@ void Parser::Return(){				//·µ»ØÓï¾ä
 			else {
 				lex->getsy();
 			}
+		}
+		else {		//voidº¯ÊıµÄ·µ»Ø
+			if (set.curFTab.ReFuncType() != FTable::voidsy && set.curFTab.ReFuncType() != FTable::mainsy) {
+				err.ErrorMessage(13, lex->return_linenum());
+			}
+			Code.genJumpUncon(Quaternary::go, "label_" + set.curFTab.ReName());
 		}
 //		cout << "this is Return!" << endl;
 	}

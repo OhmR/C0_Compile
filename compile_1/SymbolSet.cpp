@@ -92,6 +92,19 @@ void Table::PrintTable() {
 	}
 	cout << endl;
 }
+
+void Table::setreg(string name, string reg) {
+	if (getinfo(name)) {
+		m[name].reg = reg;
+	}
+}
+
+string Table::reReg(string name) {
+	if (getinfo(name)) {
+		return m[name].reg;
+	}
+	return "NOREG_ERROR";
+}
 ////////////////////////Fuction Table///////////////////////////
 
 FTable::FTable(string name, funcType ftyp) {
