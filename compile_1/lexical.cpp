@@ -175,8 +175,9 @@ int lexical::getsy() {
 		strvalue = "";
 		next_char();
 		while (ch != '"') {
-			if (!isIllegal())
+			if (!isIllegal()) {
 				strvalue = strvalue + ch;
+			}
 			else {
 				char temp[1];
 				temp[0] = ch;

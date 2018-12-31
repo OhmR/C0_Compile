@@ -9,7 +9,7 @@ MiddleCode::~MiddleCode(){
 }
 
 string MiddleCode::GenTempName(int i) {
-	return "_T" + to_string(i);
+	return "@T" + to_string(i);
 }
 
 string MiddleCode::GenLabelName(int label) {

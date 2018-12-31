@@ -102,7 +102,7 @@ int OptimizationCode::isNum(string name) {
 }
 
 int OptimizationCode::isTemp(string name) {
-	return (name.size() >= 3 && name[0] == '_' && name[1] == 'T' && name[2] >= '0' && name[2] <= '9');
+	return (name.size() >= 3 && name[0] == '@' && name[1] == 'T' && name[2] >= '0' && name[2] <= '9');
 }
 
 void OptimizationCode::GenCalculateDag(Quaternary temp) {

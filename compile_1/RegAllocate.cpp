@@ -7,6 +7,11 @@ RegAllocate::RegAllocate(string filename)
 	OptimizationCode optcode(filename);
 	middlecode = optcode.ReMiddleCode();
 	cur_func = "";
+	gen_block_subscript();
+	gen_block_flow();
+	gen_in_out();
+	gen_conflict();
+	global_reg_allocate();
 //	all_block = optcode.ReAllBlock();
 }
 

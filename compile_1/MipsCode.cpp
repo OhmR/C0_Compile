@@ -45,7 +45,7 @@ void MipsCode::EndResetRegT() {
 string MipsCode::AllocateNextReg(string name) {
 	string reg = "$t" + to_string(reg_flag);
 	if (reg_T[reg_flag] != "") {		//½«reg_flagÏÂµ±Ç°½á¹ûĞ´ÈëÄÚ´æºóÔÙ½øĞĞ¸²¸Ç
-		if (!isNum(name)) {
+		if (!isNum(reg_T[reg_flag])) {
 			StoreToRam(reg, reg_T[reg_flag]);
 		}
 	}
@@ -86,7 +86,7 @@ string MipsCode::AllocateReg(string name) {
 }
 
 string MipsCode::searchReg(string name) {
-	if (set.curFTab.in_ft(name) || set.curFTab.in_para(name)) {
+	if (isNum(name) || set.curFTab.in_ft(name) || set.curFTab.in_para(name)) {
 		for (int i = 0; i < 10; i++) {
 			if (name == reg_T[i])
 				return "$t" + to_string(i);
@@ -208,7 +208,7 @@ void MipsCode::StoreReg() {
 	insertCode("sw ", "$s7, ", "84", "($sp)");
 	insertCode("sw ", "$t8, ", "48", "($sp)");
 	insertCode("sw ", "$t9, ", "52", "($sp)");*/
-	insertCode("sw ", "$ra, ", "56", "($sp)");
+	insertCode("sw ", "$ra, ", "0", "($sp)");
 }
 
 void MipsCode::LoadInReg(string src1) {								//½«Êı¾İsrc1´æÈë¼Ä´æÆ÷ÖĞ£¬src1¿ÉÒÔÊÇÊı×Ö¡¢³£±äÁ¿
@@ -219,19 +219,30 @@ void MipsCode::LoadInReg(string src1) {								//½«Êı¾İsrc1´æÈë¼Ä´æÆ÷ÖĞ£¬src1¿ÉÒ
 			desReg = AllocateNextReg(src1);
 			insertCode("li ", desReg + ", ", src1, "");
 		}
+		else if (reg_flag == ReRegIndex(desReg)) {
+			reg_flag = (reg_flag + 1) % 10;
+		}
 	}
 	else if(set.curFTab.ReName() != "" && set.curFTab.in_ft(src1)){
 		desReg = InReg_T(src1);
 		if (desReg == "") {
 			desReg = AllocateNextReg(src1);
+			set.curFTab.in_ft(src1);
 			insertCode("lw ", desReg + ", ", to_string(set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr), "($sp)");		//º¯Êı³£±äÁ¿(´æÓÚº¯Êı²ÎÊıºó)
+		}
+		else if (reg_flag == ReRegIndex(desReg)) {
+			reg_flag = (reg_flag + 1) % 10;
 		}
 	}
 	else if (set.curFTab.ReName() != "" && set.curFTab.in_para(src1)) {
 		desReg = InReg_T(src1);
 		if (desReg == "") {
-			desReg = AllocateNextReg(src1);
+			desReg = AllocateNextReg(src1); 
+			set.curFTab.in_para(src1);
 			insertCode("lw ", desReg + ", ", to_string(set.curFTab.ret_ifo().adr), "($sp)");		//º¯Êı²ÎÊı
+		}
+		else if (reg_flag == ReRegIndex(desReg)) {
+			reg_flag = (reg_flag + 1) % 10;
 		}
 	}
 	else if (set.in_Tab(src1)) {
@@ -241,9 +252,9 @@ void MipsCode::LoadInReg(string src1) {								//½«Êı¾İsrc1´æÈë¼Ä´æÆ÷ÖĞ£¬src1¿ÉÒ
 				if(reg_S[ReRegIndex(desReg)] != ""){										//Èô¶ÔÓ¦Î»ÖÃÓĞÈ«¾Ö±äÁ¿Õ¼ÓÃ£¬Ôò±£´æºó¸²¸Ç
 					set.in_Tab(reg_S[ReRegIndex(desReg)]);
 					insertCode("sw ", desReg + ", ", to_string(set.reInfo().adr), "($gp)"); 
-					set.in_Tab(src1);
 				}
 				reg_S[ReRegIndex(desReg)] = src1;
+				set.in_Tab(src1);
 				insertCode("lw ", desReg + ", ", to_string(set.reInfo().adr), "($gp)");		//È«¾Ö±äÁ¿
 			}
 		}
@@ -251,7 +262,11 @@ void MipsCode::LoadInReg(string src1) {								//½«Êı¾İsrc1´æÈë¼Ä´æÆ÷ÖĞ£¬src1¿ÉÒ
 			desReg = InReg_T(src1);
 			if (desReg == "") {
 				desReg = AllocateNextReg(src1);
+				set.in_Tab(src1);
 				insertCode("lw ", desReg + ", ", to_string(set.reInfo().adr), "($gp)");		//È«¾Ö±äÁ¿
+			}
+			else if (reg_flag == ReRegIndex(desReg)) {
+				reg_flag = (reg_flag + 1) % 10;
 			}
 		}
 	}
@@ -296,41 +311,43 @@ void MipsCode::genMipsCode() {
 					}
 				}
 			}
+			ResetRegT();
 			StoreReg();		//±£´æ¼Ä´æÆ÷ÏÖ³¡
 			if(set.in_FTab(i->des))
 				insertCode("addi ", "$sp, ", "$sp, ", to_string(set.reFTable().ret_FTableSize() * (-1)));	//¿ª±ÙÕ»¿Õ¼ä´æ´¢º¯Êı
 			insertCode("jal ", i->des, "", "");
 			LoadReg();		//»¹Ô­¼Ä´æÆ÷ÏÖ³¡
+			ResetRegT();
 			break;
 		}
 		case Quaternary::voidfunc: {
+			ResetRegT();
 			if (infunc == 0) {
 				infunc = 1;
 				insertCode("j ", "main", "", "");
 			}
-			ResetRegT();
 			set.in_FTab(i->des);
 			set.curFTab = set.reFTable();
 			insertCode(i->des, ":", "", "");
 			break;
 		}
 		case Quaternary::intfunc: {
+			ResetRegT();
 			if (infunc == 0) {
 				infunc = 1;
 				insertCode("j ", "main", "", "");
 			}
-			ResetRegT();
 			set.in_FTab(i->des);
 			set.curFTab = set.reFTable();
 			insertCode(i->des, ":", "", "");
 			break;
 		}
 		case Quaternary::charfunc: {
+			ResetRegT();
 			if (infunc == 0) {
 				infunc = 1;
 				insertCode("j ", "main", "", "");
 			}
-			ResetRegT();
 			set.in_FTab(i->des);
 			set.curFTab = set.reFTable();
 			insertCode(i->des, ":", "", "");
@@ -355,11 +372,12 @@ void MipsCode::genMipsCode() {
 		case Quaternary::assign: {
 			LoadInReg(i->src1);
 //			LoadInReg(i->des);
+			string reg0 = AllocateReg(i->src1);
 			string reg = AllocateReg(i->des);
 			if (is_S(reg)) {							//ÈôdesÊÇÈ«¾Ö±äÁ¿£¬¸³ÖµÇ°Ğè±£´æ¹²ÏíµÄ±äÁ¿¡£
 				BeforeAssignS(i->des);
 			}
-			insertCode("addi ", searchReg(i->des) + ", ", searchReg(i->src1), ", 0");
+			insertCode("addi ", reg + ", ", reg0, ", 0");
 //			StoreToRam("$t0", i->des);
 			break;
 		}
@@ -403,9 +421,9 @@ void MipsCode::genMipsCode() {
 				else {
 					int size = set.curFTab.ret_ft().ret_TableSize() + set.curFTab.ret_para().ret_TableSize() + set.curFTab.ret_ifo().adr;
 					LoadInReg(i->src2);
-					string temp1 = searchReg(i->src2);
-					string temp2 = searchReg("Temp");
-					string temp3 = searchReg(i->des);
+					string temp1 = AllocateReg(i->src2);
+					string temp2 = AllocateReg("Temp");
+					string temp3 = AllocateReg(i->des);
 					insertCode("sll ", temp2 + ", ", temp1 + ", ", "2");
 					insertCode("addi ", temp2 + ", ", temp2 + ", ", to_string(size));
 					insertCode("add ", temp2 + ", ", temp2 + ", ", "$sp");
@@ -534,6 +552,7 @@ void MipsCode::genMipsCode() {
 			LoadInReg(i->src2);
 			string temp1 = AllocateReg(i->src1);
 			string temp2 = AllocateReg(i->src2);
+			ResetRegT();
 			insertCode("beq ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
@@ -542,6 +561,7 @@ void MipsCode::genMipsCode() {
 			LoadInReg(i->src2);
 			string temp1 = AllocateReg(i->src1);
 			string temp2 = AllocateReg(i->src2);
+			ResetRegT();
 			insertCode("bne ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
@@ -550,6 +570,7 @@ void MipsCode::genMipsCode() {
 			LoadInReg(i->src2);
 			string temp1 = AllocateReg(i->src1);
 			string temp2 = AllocateReg(i->src2);
+			ResetRegT();
 			insertCode("blt ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
@@ -558,6 +579,7 @@ void MipsCode::genMipsCode() {
 			LoadInReg(i->src2);
 			string temp1 = AllocateReg(i->src1);
 			string temp2 = AllocateReg(i->src2);
+			ResetRegT();
 			insertCode("ble ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
@@ -566,6 +588,7 @@ void MipsCode::genMipsCode() {
 			LoadInReg(i->src2);
 			string temp1 = AllocateReg(i->src1);
 			string temp2 = AllocateReg(i->src2);
+			ResetRegT();
 			insertCode("bgt ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
@@ -574,10 +597,12 @@ void MipsCode::genMipsCode() {
 			LoadInReg(i->src2);
 			string temp1 = AllocateReg(i->src1);
 			string temp2 = AllocateReg(i->src2);
+			ResetRegT();
 			insertCode("bge ", temp1 + ", ", temp2 + ", ", i->des);
 			break;
 		}
 		case Quaternary::label: {
+			ResetRegT();
 			insertCode(i->des, ":", "", "");
 			break;
 		}
@@ -592,13 +617,14 @@ void MipsCode::genMipsCode() {
 			LoadInReg(i->des);
 			string temp = AllocateReg(i->des);
 			insertCode("addi ", "$v0, ", temp + ", ", "0");
+			ResetRegT();
 			insertCode("addi ", "$sp, ", "$sp, ", to_string(set.curFTab.ret_FTableSize()));
 			insertCode("jr ", "$ra", "", "");
-//			EndResetRegT();
 //			LoadReg();	//»¹Ô­¼Ä´æÆ÷ÏÖ³¡
 			break;
 		}
 		case Quaternary::go: {
+			ResetRegT();
 			insertCode("j ", i->des, "", "");
 			break;
 		}

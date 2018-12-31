@@ -5,13 +5,6 @@ CONST char WORD='a';
 int flag,num1,num2,array[10],n;
 char string[3];
 
-
-int sum(int x,int y)
-{
-    return (x+y);
-}
-
-
 int init
 {
     const int LEN=10;
@@ -19,11 +12,17 @@ int init
     flag=0;num1=0;num2=0;n=0;index=0;
     while(index<LEN){
         array[index]=0;
+        index = index + 1;
     }
     for(index=2;index>=0;index=index-1)string[index]='0';
     return (0);
 }
 
+
+int sum(int x,int y)
+{
+    return (x+y);
+}
 
 void print(int result)
 {
