@@ -51,6 +51,7 @@ public:
 	int ret_TableSize() { return tablesize; }
 	void setreg(string name, string reg);
 	string reReg(string name);
+	unordered_map<string, info> re_Map() { return m; }
 private:
 	info ifo;
 	int adr;

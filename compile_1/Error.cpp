@@ -42,16 +42,16 @@ void Error::ErrorMessage(int errortype, int line, string message1) {
 	switch (errortype)
 	{
 	case 0:
-		cout << "Illegal word '" << message1 << "' ";
+		cout << "Illegal word '" << message1 << "' "<<endl;
 		break;
 	case 1:
-		cout << "Member '" + message1 + "' is illegal, ";
+		cout << "Member '" + message1 + "' is illegal, "<<endl;
 		break;
 	case 2:
 		cout << "Illegal char " + message1 + " after '!'" << endl;;		//不等号不完整
 		break;
 	case 3:
-		cout << "char '" << message1 << "' out of size, ";
+		cout << "char '" << message1 << "' out of size, " << endl;
 		break;
 	case 4:
 		cout << "Illegal char '" + message1 + "' in isChar" << endl;
@@ -76,6 +76,12 @@ void Error::ErrorMessage(int errortype, int line, string message1) {
 		break;
 	case 18:
 		cout << "Unknown function name " + message1 << endl;
+		break;
+	case 19:
+		cout << "Multiple def identity" + message1 << endl;
+		break;
+	case 20:
+		cout << "functioncall " + message1 + "'s para type is unmap" << endl;
 		break;
 	default:
 		break;

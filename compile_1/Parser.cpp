@@ -17,6 +17,52 @@ Parser::~Parser()
 	delete lex;
 }
 
+void Parser::comparePara(string funcname, int num, string oper) {
+	FTable Ftemp;
+	info::type typ1, typ2;
+	unordered_map<string, info> Mtemp;
+	if (set.in_FTab(funcname)) {
+		Ftemp = set.reFTable();
+	}
+	else if (set.curFTab.ReName() == funcname) {
+		Ftemp = set.curFTab;
+	}
+	/*	if(Ftemp.in_ft(oper) || Ftemp.)*/
+	Mtemp = Ftemp.ret_para().re_Map();
+	if (num >= Ftemp.ret_para().ret_TableSize() / 4) {
+		err.ErrorMessage(20, lex->return_linenum(), funcname);
+		return;
+	}
+
+	auto i = Mtemp.begin();
+	for (int j = 0; j < num; i++) {
+		j++;
+	}
+	typ2 = i->second.typ;
+
+	if (isNum(oper)) {
+		if (WriteConst == "char") {
+			typ1 = info::chars;
+		}
+		else {
+			typ1 = info::ints;
+		}
+	}
+	else if (set.curFTab.in_ft(oper) || set.curFTab.in_para(oper)) {
+		typ1 = set.curFTab.ret_ifo().typ;
+	}
+	else if (set.in_Tab(oper)) {
+		typ1 = set.reInfo().typ;
+	}
+	else {
+		typ1 = info::notype;	//为找到该变量，非法
+	}
+
+	if (typ1 != typ2) {
+		err.ErrorMessage(20, lex->return_linenum(), funcname);
+	}
+}
+
 void Parser::JumpToChar(char ch) {
 	switch (ch)
 	{
@@ -256,11 +302,17 @@ void Parser::constDef() {			//常量定义:int＜标识符＞＝＜整数＞{,＜标识符＞＝＜整
 					ifo.value = num;					//num为int型常量数值
 					ifo.size = 4;
 					if (!set.isInFunc()) {				//若尚未处理到当前函数（无名称），则为全局变量
-						if (set.insert_Tab(name, ifo))
+						if(set.in_Tab(name)) {
+							err.ErrorMessage(19, lex->return_linenum(), name);
+						}
+						else if (set.insert_Tab(name, ifo))
 							Code.genConstDef(Quaternary::constdef, name);		//## 中间代码常量声明 ##
 					}
 					else {
-						if (set.curFTab.insert_ft(name, ifo))
+						if(set.curFTab.in_ft(name) || set.curFTab.in_para(name) || set.curFTab.in_arr(name)){
+							err.ErrorMessage(19, lex->return_linenum(), name);
+						}
+						else if (set.curFTab.insert_ft(name, ifo))
 							Code.genConstDef(Quaternary::constdef, name);		//后期得改，函数定义常变量时怎么分配容量
 					}
 				}
@@ -294,11 +346,17 @@ void Parser::constDef() {			//常量定义:int＜标识符＞＝＜整数＞{,＜标识符＞＝＜整
 					ifo.ch = charvalue;		//标注常量值为charvalue
 					ifo.size = 4;			//标注常量大小为4
 					if (!set.isInFunc()) {	//若尚未处理到当前函数（无名称），则为全局变量
-						if (set.insert_Tab(name, ifo))
+						if (set.in_Tab(name)) {
+							err.ErrorMessage(19, lex->return_linenum(), name);
+						}
+						else if (set.insert_Tab(name, ifo))
 							Code.genConstDef(Quaternary::constdef, name);
 					}
 					else {
-						if (set.curFTab.insert_ft(name, ifo))
+						if (set.curFTab.in_ft(name) || set.curFTab.in_para(name) || set.curFTab.in_arr(name)) {
+							err.ErrorMessage(19, lex->return_linenum(), name);
+						}
+						else if (set.curFTab.insert_ft(name, ifo))
 							Code.genConstDef(Quaternary::constdef, name);		//后期得改，函数定义常变量时怎么分配容量
 					}
 				}
@@ -429,11 +487,17 @@ void Parser::varDef() {				//变量定义
 						ifo.size = num * 4;		//数组长度为num，单个元素大小为4
 						if (lex->return_sy() == lexical::rbrack) {
 							if (!set.isInFunc()){
-								if (set.insert_ATab(name, ifo))
+								if (set.in_Tab(name)) {
+									err.ErrorMessage(19, lex->return_linenum(), name);
+								}
+								else if (set.insert_ATab(name, ifo))
 									Code.genVarDef(Quaternary::vardef, name, "array");
 							}
 							else{
-								if (set.curFTab.insert_arr(name, ifo))
+								if (set.curFTab.in_ft(name) || set.curFTab.in_para(name) || set.curFTab.in_arr(name)) {
+									err.ErrorMessage(19, lex->return_linenum(), name);
+								}
+								else if (set.curFTab.insert_arr(name, ifo))
 									Code.genVarDef(Quaternary::vardef, name, "array");
 							}
 							lex->getsy();
@@ -454,11 +518,17 @@ void Parser::varDef() {				//变量定义
 					ifo.obj = info::varsy;		//将常规的变量插入对应的表中
 					ifo.size = 4; 
 					if (!set.isInFunc()){
-						if (set.insert_Tab(name, ifo))
+						if (set.in_Tab(name)) {
+							err.ErrorMessage(19, lex->return_linenum(), name);
+						}
+						else if (set.insert_Tab(name, ifo))
 							Code.genVarDef(Quaternary::vardef, name, "unarray");
 					}
 					else {
-						if (set.curFTab.insert_ft(name, ifo))
+						if (set.curFTab.in_ft(name) || set.curFTab.in_para(name) || set.curFTab.in_arr(name)) {
+							err.ErrorMessage(19, lex->return_linenum(), name);
+						}
+						else if (set.curFTab.insert_ft(name, ifo))
 							Code.genVarDef(Quaternary::vardef, name, "unarray");
 					}
 				}
@@ -768,6 +838,7 @@ void Parser::factor() {				//因子:=＜标识符＞｜＜标识符＞‘[’＜表达式＞‘]’|‘
 			JumpToChar(')');
 		}
 		else {
+			WriteConst = "int";
 			lex->getsy();
 		}
 	}
@@ -1313,12 +1384,15 @@ void Parser::noFuncCall() {			//无返回值函数调用语句
 //	cout << "this is noFuncCall!" << endl;
 }
 void Parser::valueParTable(string funcname) {		//值参数表
+	int num = 0;
 	do {
 		if (lex->return_sy() == lexical::comma)
 			lex->getsy();
 		expr();
 //		reset_temp();
 		Code.genPush(Quaternary::push, funcname, operande);
+		comparePara(funcname, num, operande);
+		num++;
 	} while (lex->return_sy() == lexical::comma);
 //	cout << "this is valueParTable" << endl;
 }

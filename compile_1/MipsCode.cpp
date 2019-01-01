@@ -5,7 +5,7 @@
 MipsCode::MipsCode(string filename, vector<Quaternary> midcode){
 	infunc = 0;
 	pushadr = 0;
-	stringnum = 0;
+	stringnum = 1;
 	Parser par(filename);
 	par.program();
 	middlecode = midcode;
@@ -14,6 +14,7 @@ MipsCode::MipsCode(string filename, vector<Quaternary> midcode){
 	reg_flag = 0;
 	insertCode(".text", "", "", "");	//开启代码段
 	insertString(".data");				//开辟空间存字符串
+	insertString("str0:.asciiz \"\\n\"");
 	this->genMipsCode();		//生成目标代码
 }
 
@@ -724,6 +725,9 @@ void MipsCode::genMipsCode() {
 					insertCode("syscall", "", "", "");
 				}
 			}
+			insertCode("la ", "$a0, ", "str", "0");	//写回车
+			insertCode("li ", "$v0, ", "4", "");
+			insertCode("syscall", "", "", "");
 			break;
 		}
 		case Quaternary::writestring: {

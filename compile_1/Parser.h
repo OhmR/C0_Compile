@@ -79,6 +79,7 @@ private:
 
 	int isNum(string name);		//判断name是否为数字
 	int transNum(string name);	//将string转化为int
+	void comparePara(string funcname, int num, string oper);
 };
 
 #endif
